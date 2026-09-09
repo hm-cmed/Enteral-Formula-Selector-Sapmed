@@ -1,0 +1,890 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>院内採用 栄養剤セレクター</title>
+<meta name="description" content="院内採用の経腸栄養剤・栄養補助食品から、投与経路・病態・アレルゲン・発注区分で条件に合うものを絞り込みます。">
+<style>
+:root{
+  --ink:#14252a; --ink-2:#4a5f65; --ink-3:#7c8f94;
+  --paper:#e9eeec; --surface:#fff; --surface-2:#f5f8f6;
+  --rule:#c8d4d0; --rule-soft:#dde5e2;
+  --teal:#0d6157; --teal-deep:#083f39; --teal-pale:#d3e5e0;
+  --alert:#a32c14; --alert-pale:#f6e3de;
+  --caution:#8a6100; --caution-pale:#f7eed8;
+  --font-ui:-apple-system,BlinkMacSystemFont,"Hiragino Kaku Gothic ProN","Yu Gothic Medium","YuGothic","Meiryo",sans-serif;
+  --font-disp:"Hiragino Mincho ProN","Yu Mincho","YuMincho","Noto Serif JP",serif;
+  --r:3px;
+}
+*{box-sizing:border-box}
+html{-webkit-text-size-adjust:100%}
+body{margin:0;background:var(--paper);color:var(--ink);font-family:var(--font-ui);
+  font-size:15px;line-height:1.65;font-feature-settings:"palt" 1}
+button,input,select{font:inherit;color:inherit}
+
+.masthead{background:var(--teal-deep);color:#eaf2f0;padding:22px 20px 20px}
+.masthead-in,.tiles-in,.shell,.foot-in{max-width:1220px;margin:0 auto}
+.masthead h1{font-family:var(--font-disp);font-weight:600;font-size:26px;line-height:1.3;margin:0 0 6px;letter-spacing:.02em}
+.masthead p{margin:0;font-size:13.5px;color:#a9c6c0;max-width:64ch}
+
+/* --- 発注区分タイル --- */
+.tiles-wrap{background:var(--surface);border-bottom:1px solid var(--rule);padding:22px 20px 20px}
+.tiles-head{display:flex;flex-wrap:wrap;gap:8px 14px;align-items:baseline;justify-content:space-between;margin-bottom:14px}
+.tiles-head h2{font-family:var(--font-disp);font-size:17px;font-weight:600;margin:0}
+.tiles-head span{font-size:12.5px;color:var(--ink-3)}
+.tiles{display:grid;grid-template-columns:repeat(5,1fr);gap:8px}
+@media(max-width:820px){.tiles{grid-template-columns:repeat(2,1fr)}}
+.tile{
+  text-align:left;border:1px solid var(--rule);background:var(--surface-2);border-radius:var(--r);
+  padding:11px 13px 12px;cursor:pointer;line-height:1.45;
+}
+.tile:hover{border-color:var(--teal)}
+.tile:focus-visible{outline:2px solid var(--teal);outline-offset:2px}
+.tile[aria-pressed="true"]{background:var(--teal);border-color:var(--teal);color:#fff}
+.tile[aria-pressed="true"] .t-sub{color:#bcd9d3}
+.t-n{font-family:var(--font-disp);font-size:22px;font-variant-numeric:tabular-nums;display:block;line-height:1.2}
+.t-name{font-size:13.5px;font-weight:600;display:block;margin-top:2px}
+.t-sub{font-size:11.5px;color:var(--ink-3);display:block;margin-top:2px}
+
+.shell{padding:22px 20px 60px;display:grid;grid-template-columns:326px 1fr;gap:26px;align-items:start}
+@media(max-width:900px){.shell{grid-template-columns:1fr;gap:18px}}
+
+.panel{background:var(--surface);border:1px solid var(--rule);border-radius:var(--r);position:sticky;top:14px}
+@media(max-width:900px){.panel{position:static}}
+.panel-head{padding:13px 16px;border-bottom:1px solid var(--rule);display:flex;justify-content:space-between;align-items:center}
+.panel-head h2{font-family:var(--font-disp);font-size:16px;margin:0;font-weight:600}
+.panel-body{padding:4px 16px 16px;max-height:calc(100vh - 120px);overflow:auto}
+@media(max-width:900px){.panel-body{max-height:none}}
+fieldset{border:0;padding:0;margin:16px 0 0}
+legend{font-size:12.5px;font-weight:600;color:var(--teal-deep);padding:0 0 7px;letter-spacing:.03em}
+.hint{font-size:11.5px;color:var(--ink-3);margin:-4px 0 8px;line-height:1.5}
+.seg{display:flex;flex-wrap:wrap;gap:6px}
+.seg label{flex:1 1 auto;min-width:64px;text-align:center;border:1px solid var(--rule);
+  border-radius:var(--r);padding:7px 6px;font-size:13px;cursor:pointer;background:var(--surface-2)}
+.seg input{position:absolute;opacity:0;width:0;height:0}
+.seg label:has(input:checked){background:var(--teal);border-color:var(--teal);color:#fff}
+.seg label:has(input:focus-visible){outline:2px solid var(--teal);outline-offset:2px}
+.checks{display:grid;gap:2px}
+.checks label{display:flex;gap:8px;align-items:flex-start;padding:5px 4px;border-radius:var(--r);
+  cursor:pointer;font-size:13.5px;line-height:1.45}
+.checks label:hover{background:var(--surface-2)}
+.checks input{margin:4px 0 0;accent-color:var(--teal);width:15px;height:15px;flex:none}
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:0 6px}
+.btn{border:1px solid var(--teal);background:var(--teal);color:#fff;padding:9px 14px;
+  border-radius:var(--r);cursor:pointer;font-size:13.5px}
+.btn:hover{background:var(--teal-deep);border-color:var(--teal-deep)}
+.btn.ghost{background:transparent;color:var(--teal)}
+.btn.ghost:hover{background:var(--teal-pale);color:var(--teal-deep)}
+.btn:focus-visible{outline:2px solid var(--ink);outline-offset:2px}
+
+.tabs{display:flex;gap:2px;margin-bottom:14px;border-bottom:1px solid var(--rule)}
+.tab{border:0;background:none;padding:9px 14px;cursor:pointer;font-size:13.5px;color:var(--ink-2);
+  border-bottom:2px solid transparent;margin-bottom:-1px}
+.tab[aria-selected="true"]{color:var(--teal-deep);border-bottom-color:var(--teal);font-weight:600}
+.tab:focus-visible{outline:2px solid var(--teal);outline-offset:-2px}
+.count{font-size:13px;color:var(--ink-2);margin:0 0 12px}
+.count b{color:var(--ink);font-size:15px}
+
+.card{background:var(--surface);border:1px solid var(--rule);border-radius:var(--r);
+  padding:15px 17px;margin-bottom:10px;cursor:pointer}
+.card:hover{border-color:var(--teal)}
+.card:focus-visible{outline:2px solid var(--teal);outline-offset:1px}
+.card-top{display:flex;flex-wrap:wrap;gap:6px 12px;align-items:baseline;justify-content:space-between}
+.card h3{font-size:16px;margin:0;font-weight:600;line-height:1.4}
+.maker{font-size:12.5px;color:var(--ink-3);font-weight:400;margin-left:7px}
+.rank{font-family:var(--font-disp);font-size:13px;color:var(--teal-deep);border:1px solid var(--teal-pale);
+  background:var(--teal-pale);border-radius:var(--r);padding:2px 8px;white-space:nowrap}
+.chips{display:flex;flex-wrap:wrap;gap:5px;margin:9px 0 0}
+.chip{font-size:11.5px;padding:2px 7px;border-radius:20px;background:var(--surface-2);
+  border:1px solid var(--rule-soft);color:var(--ink-2)}
+.chip.rx{background:var(--teal-deep);border-color:var(--teal-deep);color:#fff}
+.chip.hit{background:var(--teal-pale);border-color:var(--teal-pale);color:var(--teal-deep)}
+.chip.lim{background:var(--caution-pale);border-color:#e3d3a8;color:#5c4200}
+.facts{display:flex;flex-wrap:wrap;gap:0 20px;margin:11px 0 0;font-size:13px;color:var(--ink-2)}
+.facts div{font-variant-numeric:tabular-nums}
+.facts b{color:var(--ink);font-weight:600}
+.warn{margin:11px 0 0;padding:8px 10px;border-radius:var(--r);font-size:12.5px;line-height:1.55;
+  background:var(--caution-pale);border-left:3px solid var(--caution);color:#5c4200}
+.warn.hard{background:var(--alert-pale);border-left-color:var(--alert);color:#7a2110}
+.empty{background:var(--surface);border:1px dashed var(--rule);border-radius:var(--r);
+  padding:34px 24px;text-align:center;color:var(--ink-2)}
+.empty p{margin:0 0 6px}
+
+.tablewrap{background:var(--surface);border:1px solid var(--rule);border-radius:var(--r);overflow:auto;max-height:74vh}
+table{border-collapse:collapse;width:100%;font-size:13px;min-width:900px}
+th,td{padding:8px 11px;text-align:left;border-bottom:1px solid var(--rule-soft);white-space:nowrap}
+th{position:sticky;top:0;background:var(--surface-2);z-index:2;font-weight:600;font-size:12px;
+  cursor:pointer;border-bottom:1px solid var(--rule)}
+th:hover{color:var(--teal)}
+th[aria-sort]{color:var(--teal-deep)}
+td.num{text-align:right;font-variant-numeric:tabular-nums}
+tbody tr{cursor:pointer}
+tbody tr:hover{background:var(--surface-2)}
+.unit-note{font-size:12.5px;color:var(--ink-3);margin:0 0 10px}
+
+dialog{border:1px solid var(--rule);border-radius:var(--r);padding:0;max-width:660px;
+  width:calc(100% - 32px);background:var(--surface);color:var(--ink)}
+dialog::backdrop{background:rgba(20,37,42,.5)}
+.dlg-head{padding:18px 22px 14px;border-bottom:1px solid var(--rule);display:flex;gap:14px;
+  justify-content:space-between;align-items:flex-start}
+.dlg-head h3{font-family:var(--font-disp);font-size:20px;margin:0;font-weight:600;line-height:1.35}
+.dlg-body{padding:16px 22px 22px;max-height:66vh;overflow:auto}
+.close{border:1px solid var(--rule);background:var(--surface-2);border-radius:var(--r);
+  width:30px;height:30px;cursor:pointer;flex:none;font-size:17px;line-height:1}
+.close:hover{background:var(--paper)}
+dl{display:grid;grid-template-columns:9em 1fr;margin:0;font-size:13.5px}
+dt{color:var(--ink-3);padding:6px 0;border-bottom:1px solid var(--rule-soft)}
+dd{margin:0;padding:6px 0;border-bottom:1px solid var(--rule-soft)}
+.dlg-body h4{font-size:13px;color:var(--teal-deep);margin:18px 0 6px;font-weight:600}
+.nutri{width:100%;min-width:0;border-collapse:collapse;font-size:13px}
+.nutri th,.nutri td{padding:5px 8px;border-bottom:1px solid var(--rule-soft);white-space:nowrap}
+.nutri th{position:static;background:none;cursor:default;font-size:12px;color:var(--ink-3)}
+.nutri td.num{text-align:right}
+
+footer{background:var(--teal-deep);color:#a9c6c0;padding:26px 20px 34px;font-size:12.5px;line-height:1.7}
+footer strong{color:#eaf2f0;display:block;margin-bottom:5px;font-size:13px}
+footer p{margin:0 0 12px;max-width:78ch}
+@media(prefers-reduced-motion:reduce){*{transition:none!important}}
+</style>
+</head>
+<body>
+
+<header class="masthead">
+  <div class="masthead-in">
+    <h1>院内採用 栄養剤セレクター</h1>
+    <p>採用一覧に載っている経腸栄養剤・栄養補助食品だけを収載しています。発注区分、投与経路、病態、除きたいアレルゲンから絞り込めます。</p>
+  </div>
+</header>
+
+<section class="tiles-wrap" aria-labelledby="tiles-h">
+  <div class="tiles-in">
+    <div class="tiles-head">
+      <h2 id="tiles-h">どこから出せるか</h2>
+      <span>タイルを押すとその区分だけに絞り込みます</span>
+    </div>
+    <div class="tiles" id="tiles"></div>
+  </div>
+</section>
+
+<main class="shell">
+  <form class="panel" id="filters" aria-label="絞り込み条件">
+    <div class="panel-head">
+      <h2>条件を選ぶ</h2>
+      <button type="button" class="btn ghost" id="reset" style="padding:5px 10px;font-size:12.5px">リセット</button>
+    </div>
+    <div class="panel-body">
+
+      <fieldset>
+        <legend>投与経路</legend>
+        <div class="seg" role="radiogroup">
+          <label><input type="radio" name="route" value="any" checked><span>指定なし</span></label>
+          <label><input type="radio" name="route" value="oral"><span>経口</span></label>
+          <label><input type="radio" name="route" value="tube"><span>経管</span></label>
+        </div>
+      </fieldset>
+
+      <fieldset>
+        <legend>目的・病態</legend>
+        <div class="checks" id="goals"></div>
+      </fieldset>
+
+      <fieldset>
+        <legend>除きたいアレルゲン</legend>
+        <p class="hint">選んだ原材料を含む製品を除外します。</p>
+        <div class="checks grid2" id="allerg"></div>
+      </fieldset>
+
+      <fieldset>
+        <legend>剤形</legend>
+        <div class="checks grid2" id="forms"></div>
+      </fieldset>
+
+      <fieldset>
+        <legend>その他</legend>
+        <div class="checks">
+          <label><input type="checkbox" name="lactose"><span>乳糖を含むものを除く</span></label>
+          <label><input type="checkbox" name="wardonly"><span>病棟から直接発注できるものだけ</span></label>
+        </div>
+      </fieldset>
+    </div>
+  </form>
+
+  <section aria-live="polite">
+    <div class="tabs" role="tablist">
+      <button class="tab" role="tab" id="tab-match" aria-selected="true" aria-controls="p-match">条件に合う</button>
+      <button class="tab" role="tab" id="tab-out" aria-selected="false" aria-controls="p-out">条件から外れた</button>
+      <button class="tab" role="tab" id="tab-all" aria-selected="false" aria-controls="p-all">採用品一覧</button>
+    </div>
+
+    <div id="p-match" role="tabpanel" aria-labelledby="tab-match">
+      <p class="count" id="countMatch"></p>
+      <div id="listMatch"></div>
+    </div>
+
+    <div id="p-out" role="tabpanel" aria-labelledby="tab-out" hidden>
+      <p class="count" id="countOut"></p>
+      <div id="listOut"></div>
+    </div>
+
+    <div id="p-all" role="tabpanel" aria-labelledby="tab-all" hidden>
+      <p class="count">採用 <b id="countAll"></b> 品。見出しを押すと並べ替えます。</p>
+      <p class="unit-note">たんぱく質・脂質・炭水化物・食塩は 100 kcal あたりに換算した値です。1本あたりの値は各製品を開くと確認できます。</p>
+      <div class="tablewrap">
+        <table id="tbl">
+          <thead><tr>
+            <th data-k="name">製品名</th>
+            <th data-k="availLabel">発注区分</th>
+            <th data-k="formLabel">剤形</th>
+            <th data-k="density" class="num">kcal/mL·g</th>
+            <th data-k="p100" class="num">たんぱく g</th>
+            <th data-k="f100" class="num">脂質 g</th>
+            <th data-k="c100" class="num">炭水化物 g</th>
+            <th data-k="s100" class="num">食塩 g</th>
+            <th data-k="osm" class="num">浸透圧</th>
+            <th data-k="routeLabel">経路</th>
+          </tr></thead>
+          <tbody></tbody>
+        </table>
+      </div>
+    </div>
+  </section>
+</main>
+
+<dialog id="dlg">
+  <div class="dlg-head">
+    <h3 id="dlgTitle"></h3>
+    <button class="close" id="dlgClose" aria-label="閉じる">×</button>
+  </div>
+  <div class="dlg-body" id="dlgBody"></div>
+</dialog>
+
+<footer>
+  <div class="foot-in">
+    <strong>データの出どころ</strong>
+    <p>院内の栄養剤一覧（薬剤 R8.4／濃厚流動食 R7.9・R8.1／給食使用分 R7.6）の記載値をそのまま収載しています。採用品は改訂されるため、実際の発注前には最新の一覧と在庫状況を確認してください。</p>
+    <strong>発注のきまり</strong>
+    <p>薬剤の栄養剤は入院時処方では風味が限定されており、各製品の詳細に「入院時処方可」と表示しています。ハイネックスリニュートとペプタメンAFはEICU・HCU・ICUの診療科限定で、病棟からは入力できません。オルニュート、メイバランスミニ、アイソカルクリア、エネプリンプロテインプラスは、NST・緩和ケアチーム・管理栄養士病棟専従・摂食障害入院医療管理加算のいずれかに該当する場合のみ提供できます。給食使用分は病院給食献立で使用中のもので、在庫があれば使用できます。</p>
+    <strong>数値について</strong>
+    <p>一覧に記載のない項目は「—」と表示しています。カリウム・鉄・亜鉛は薬剤と一部の食品にしか記載がなく、リンの数値は一覧に含まれていません。腎不全症例では「低リン」「低カリウム」の特徴表示と製品の標準組成表で確認してください。エレンタールの食塩相当量はコンソメ味のみ1.5 gです。</p>
+    <strong>使用にあたって</strong>
+    <p>本ツールは選択の補助であり、処方・提供の判断に代わるものではありません。</p>
+  </div>
+</footer>
+
+<script>
+/* =========================================================
+   院内採用栄養剤データ
+   数値はすべて「1本（1袋）あたり」。院内一覧の記載値。
+   null は一覧に記載のない項目。
+   ========================================================= */
+const AVAIL = {
+  rx:      {label:"薬剤（処方）", sub:"処方箋で出す"},
+  ward:    {label:"食品・病棟入力可", sub:"病棟から発注できる"},
+  dept:    {label:"食品・診療科限定", sub:"EICU・HCU・ICU のみ"},
+  nst:     {label:"食品・チーム限定", sub:"NST・緩和ケア等のみ"},
+  kitchen: {label:"給食使用分", sub:"在庫があれば使用可"}
+};
+
+const DATA = [
+/* ===== 薬剤（R8.4） ===== */
+{name:"ラコールNF配合経腸用液",maker:"大塚製薬",avail:"rx",group:"半消化態栄養剤",form:"liquid",formLabel:"液",
+ routes:["tube"],vol:200,unit:"mL",kcal:200,density:1.0,
+ prot:8.8,fat:4.5,sugar:31.2,fiber:null,water:170.0,na:147.6,k:276.0,fe:1.3,zn:1.3,salt:0.38,
+ osm:"330〜360",osmN:345,npcn:120,lactose:false,allerg:["乳","大豆"],
+ flavRx:["ミルク","バナナ"],flav:["コーヒー","抹茶","コーン"],
+ feat:["スタンダード","MCT配合"],note:""},
+
+{name:"エネーボ配合経腸用液",maker:"アボットジャパン",avail:"rx",group:"半消化態栄養剤",form:"liquid",formLabel:"液",
+ routes:["oral","tube"],vol:250,unit:"mL",kcal:300,density:1.2,
+ prot:13.5,fat:9.6,sugar:39.6,fiber:null,water:203.0,na:230.0,k:300.0,fe:4.4,zn:4.5,salt:0.58,
+ osm:"350",osmN:350,npcn:116,lactose:false,allerg:["乳","大豆"],
+ flavRx:[],flav:["バニラ"],
+ feat:["BCAA配合 3,000 mg","難消化性デキストリン配合","微量元素高配合（セレン・クロム・モリブデン）"],note:""},
+
+{name:"エンシュア・H",maker:"アボットジャパン",avail:"rx",group:"半消化態栄養剤",form:"liquid",formLabel:"液",
+ routes:["tube"],vol:250,unit:"mL",kcal:375,density:1.5,
+ prot:13.2,fat:13.2,sugar:51.5,fiber:null,water:194.0,na:300.0,k:560.0,fe:3.4,zn:5.6,salt:0.76,
+ osm:"540",osmN:540,npcn:157,lactose:false,allerg:["乳","大豆"],
+ flavRx:["ストロベリー"],flav:["抹茶","コーヒー","バナナ","メロン","バニラ","黒糖"],
+ feat:["高濃度","亜鉛高配合"],note:""},
+
+{name:"イノラス配合経腸用液 125 mL",maker:"大塚製薬",avail:"rx",group:"半消化態栄養剤",form:"liquid",formLabel:"液",
+ routes:["oral","tube"],vol:125,unit:"mL",kcal:200,density:1.6,
+ prot:8.0,fat:6.4,sugar:26.5,fiber:null,water:93.0,na:180.0,k:368.0,fe:2.4,zn:2.7,salt:0.46,
+ osm:"670",osmN:670,npcn:131,lactose:true,lactoseAmt:"0.48 g",allerg:["乳"],
+ flavRx:["コーヒー"],flav:["紅茶"],
+ feat:["高濃度","難消化性デキストリン配合","微量元素高配合（セレン・ヨウ素・カルニチン）"],note:""},
+
+{name:"イノラス配合経腸用液 187.5 mL",maker:"大塚製薬",avail:"rx",group:"半消化態栄養剤",form:"liquid",formLabel:"液",
+ routes:["oral","tube"],vol:187.5,unit:"mL",kcal:300,density:1.6,
+ prot:12.0,fat:9.7,sugar:39.8,fiber:null,water:140.6,na:270.0,k:551.0,fe:3.7,zn:4.0,salt:0.69,
+ osm:"670",osmN:670,npcn:131,lactose:true,lactoseAmt:"0.86 g",allerg:["乳"],
+ flavRx:["ヨーグルト"],flav:["りんご","コーヒー","いちご"],
+ feat:["高濃度","難消化性デキストリン配合","微量元素高配合（セレン・ヨウ素・カルニチン）"],note:""},
+
+{name:"イノソリッド配合経腸用半固形剤",maker:"大塚製薬",avail:"rx",group:"半消化態栄養剤",form:"semisolid",formLabel:"半固形",
+ routes:["tube"],vol:300,unit:"g",kcal:300,density:1.0,
+ prot:13.5,fat:8.3,sugar:41.3,fiber:null,water:228.0,na:393.0,k:552.0,fe:3.7,zn:3.7,salt:1.0,
+ osm:"記載なし",osmN:null,npcn:114,lactose:true,lactoseAmt:"0.96 g 以下",allerg:["乳"],
+ flavRx:[],flav:[],
+ feat:["微量元素配合（ヨウ素・セレン・クロム・モリブデン）","カルニチン・コリン配合","イヌリン配合"],
+ note:"半固形剤のため胃瘻からの短時間注入に用いる。"},
+
+{name:"ツインラインNF配合経腸用液",maker:"大塚製薬",avail:"rx",group:"消化態栄養剤",form:"liquid",formLabel:"液",
+ routes:["oral","tube"],vol:400,unit:"mL",kcal:400,density:1.0,
+ prot:16.2,fat:11.1,sugar:58.7,fiber:null,water:340.0,na:276.0,k:470.0,fe:2.5,zn:3.8,salt:0.7,
+ osm:"470〜510",osmN:490,npcn:140,lactose:false,allerg:["乳","大豆"],
+ flavRx:[],flav:[],
+ feat:["消化障害時に適応"],note:"A液・B液の2袋を用時混合して400 mLとする。"},
+
+{name:"エレンタール配合内用剤",maker:"EAファーマ",avail:"rx",group:"成分栄養剤（脂質制限用）",form:"powder",formLabel:"粉末",
+ routes:["oral","tube"],vol:80,unit:"g",kcal:300,density:1.0,
+ prot:14.1,fat:0.5,sugar:63.4,fiber:null,water:250.0,na:260.0,k:217.6,fe:1.8,zn:1.8,salt:0.1,
+ saltNote:"コンソメ味は 1.5 g",
+ osm:"760",osmN:760,npcn:115,lactose:true,lactoseAmt:"11.6 mg",allerg:["大豆"],
+ flavRx:[],flav:["青りんご","オレンジ","トマト","グレープフルーツ","マンゴー","パイナップル","梅","ヨーグルト","コーヒー","コンソメ"],
+ feat:["低脂質"],
+ note:"250 mLの水で溶解した場合 300 kcal/300 mL。フレーバーは病棟発注。"},
+
+{name:"アミノレバンEN配合散",maker:"大塚製薬",avail:"rx",group:"成分栄養剤（肝性脳症用）",form:"powder",formLabel:"粉末",
+ routes:["oral","tube"],vol:50,unit:"g",kcal:213,density:1.0,
+ prot:13.5,fat:3.7,sugar:31.5,fiber:null,water:180.0,na:39.0,k:212.0,fe:1.30,zn:0.9,salt:0.1,
+ osm:"570",osmN:570,npcn:74,lactose:false,allerg:["乳","ゼラチン"],
+ flavRx:["フルーツ"],flav:["コーヒー"],
+ feat:["BCAA高配合 5,560 mg"],
+ note:"180 mLの水で溶解した場合 200 kcal/200 mL。"},
+
+/* ===== 濃厚流動食・半消化態／半固形（R7.9・病棟入力可） ===== */
+{name:"メイバランス 1.0",maker:"明治",avail:"ward",group:"半消化態",form:"liquid",formLabel:"液",
+ routes:["oral","tube"],vol:200,unit:"mL",kcal:200,density:1.0,
+ prot:8.0,fat:5.6,carb:31.4,sugar:29.4,fiber:2.0,water:168.6,salt:0.56,
+ osm:"380",osmN:380,lactose:null,allerg:["乳","大豆"],
+ flavRx:[],flav:["バニラ"],feat:["微量元素"],note:""},
+
+{name:"アイソカルサポート",maker:"ネスレ日本",avail:"ward",group:"半消化態",form:"liquid",formLabel:"液",
+ routes:["oral","tube"],vol:200,unit:"mL",kcal:300,density:1.5,
+ prot:11.4,fat:13.8,carb:35.1,sugar:30.6,fiber:4.5,water:153.0,salt:0.69,
+ osm:"410",osmN:410,lactose:null,allerg:["乳","大豆"],
+ flavRx:[],flav:["プレーン"],feat:["高濃度","糖質少","PHGG配合","高MCT"],note:""},
+
+{name:"メイバランス Mini",maker:"明治",avail:"ward",group:"半消化態",form:"liquid",formLabel:"液",
+ routes:["oral","tube"],vol:125,unit:"mL",kcal:200,density:1.6,
+ prot:7.5,fat:5.6,carb:31.8,sugar:29.3,fiber:2.5,water:94.0,salt:0.28,
+ osm:"510",osmN:510,lactose:null,allerg:["乳","大豆"],
+ flavRx:[],flav:["コーヒー"],feat:["高濃度"],note:""},
+
+{name:"クリミール",maker:"クリニコ",avail:"ward",group:"半消化態",form:"liquid",formLabel:"液",
+ routes:["oral","tube"],vol:125,unit:"mL",kcal:200,density:1.6,
+ prot:7.5,fat:6.7,carb:29.3,sugar:26.8,fiber:2.5,water:94.0,salt:0.28,
+ osm:"430",osmN:430,lactose:null,allerg:["乳","大豆"],
+ flavRx:[],flav:["いちご"],feat:["高濃度","シールド乳酸菌"],note:""},
+
+{name:"MA-R2.0",maker:"クリニコ",avail:"ward",group:"半消化態",form:"liquid",formLabel:"液",
+ routes:["oral","tube"],vol:200,unit:"mL",kcal:400,density:2.0,
+ prot:14.6,fat:11.2,carb:63.2,sugar:59.2,fiber:4.0,water:139.0,salt:0.76,
+ osm:"620",osmN:620,lactose:null,allerg:["乳","大豆"],
+ flavRx:[],flav:["バナナ"],feat:["高濃度"],note:""},
+
+{name:"メディミル ロイシンプラス",maker:"ネスレ日本",avail:"ward",group:"半消化態",form:"liquid",formLabel:"液",
+ routes:["oral","tube"],vol:100,unit:"mL",kcal:200,density:2.0,
+ prot:8.0,fat:10.3,carb:20.4,sugar:18.5,fiber:1.9,water:70.0,salt:0.30,
+ osm:"658",osmN:658,lactose:null,allerg:["乳","大豆","ゼラチン"],
+ flavRx:[],flav:["コーヒー牛乳"],
+ feat:["BCAA 2,070 mg（うちロイシン 1,440 mg）","MCT・ホエイペプチド"],note:""},
+
+{name:"カロリーメイトゼリー",maker:"大塚製薬",avail:"ward",group:"半固形流動食",form:"jelly",formLabel:"ゼリー",
+ routes:["oral"],vol:215,unit:"mL",kcal:200,density:0.93,
+ prot:8.2,fat:4.4,carb:33.2,sugar:31.2,fiber:2.00,water:168.0,salt:0.08,
+ osm:null,osmN:null,lactose:null,allerg:["乳","りんご","ゼラチン"],
+ flavRx:[],flav:["アップル"],feat:["ゼリータイプ"],note:""},
+
+/* ===== 濃厚流動食・消化態／特殊用途（R8.1） ===== */
+{name:"ハイネックス イーゲル",maker:"大塚製薬工場",avail:"ward",group:"消化態",form:"liquid",formLabel:"液",
+ routes:["tube"],vol:500,unit:"mL",kcal:400,density:0.8,
+ prot:16.0,fat:8.8,carb:67.0,sugar:61.5,fiber:5.5,water:440.0,salt:1.69,
+ osm:"360",osmN:360,lactose:false,allerg:["大豆","ゼラチン"],
+ flavRx:[],flav:["紅茶"],
+ feat:["大豆ペプチド","乳糖非含有","ペクチン","食物繊維"],
+ note:"ペクチンを含み、胃内で粘度が上がる設計。"},
+
+{name:"ハイネックス リニュート",maker:"大塚製薬工場",avail:"dept",group:"消化態",form:"liquid",formLabel:"液",
+ routes:["tube"],vol:400,unit:"mL",kcal:400,density:1.0,
+ prot:24.0,fat:22.4,carb:28.4,sugar:23.6,fiber:4.8,water:340.0,salt:1.62,
+ osm:"380",osmN:380,lactose:null,allerg:["大豆","ゼラチン"],
+ flavRx:[],flav:[],
+ feat:["コラーゲンペプチド","高脂質","MCT","栄養再開初期"],
+ note:"EICU・HCU・ICU の診療科限定。上限7日間分。病棟からは入力できない。"},
+
+{name:"ペプタメン スタンダード",maker:"ネスレ日本",avail:"ward",group:"消化態",form:"liquid",formLabel:"液",
+ routes:["oral","tube"],vol:200,unit:"mL",kcal:300,density:1.5,
+ prot:10.5,fat:12.0,carb:37.5,sugar:null,fiber:null,water:153.0,salt:1.09,
+ osm:"520",osmN:520,lactose:false,allerg:["乳"],
+ flavRx:[],flav:["バニラ"],
+ feat:["高濃度","ペプチド","乳糖非含有","乳清（ホエイ）"],note:""},
+
+{name:"ペプタメンAF",maker:"ネスレ日本",avail:"dept",group:"消化態",form:"liquid",formLabel:"液",
+ routes:["tube"],vol:200,unit:"mL",kcal:300,density:1.5,
+ prot:19.0,fat:13.2,carb:26.4,sugar:null,fiber:null,water:155.0,salt:1.34,
+ osm:"440",osmN:440,lactose:false,allerg:["乳","大豆"],
+ flavRx:[],flav:[],
+ feat:["高濃度","乳糖非含有","乳清（ホエイ）"],
+ note:"EICU・HCU・ICU の診療科限定。病棟からは入力できない。"},
+
+{name:"ペプチーノ",maker:"ニュートリー",avail:"ward",group:"消化態",form:"liquid",formLabel:"液",
+ routes:["oral","tube"],vol:200,unit:"mL",kcal:200,density:1.0,
+ prot:7.2,fat:0.0,carb:42.8,sugar:42.8,fiber:0.0,water:170.0,salt:0.36,
+ osm:"500",osmN:500,lactose:null,allerg:["乳"],
+ flavRx:[],flav:["アップル"],
+ feat:["無脂肪","無残渣","乳清（ホエイ）ペプチド"],note:""},
+
+{name:"グルセルナREX",maker:"アボットジャパン",avail:"ward",group:"特殊用途（耐糖能異常用）",form:"liquid",formLabel:"液",
+ routes:["oral","tube"],vol:200,unit:"mL",kcal:200,density:1.0,
+ prot:8.4,fat:11.1,carb:19.4,sugar:17.6,fiber:1.8,water:170.0,salt:0.48,
+ osm:"560",osmN:560,lactose:null,allerg:["乳","大豆"],
+ flavRx:[],flav:["きな粉風味"],
+ feat:["脂質多","糖質少"],note:""},
+
+{name:"リーナレンLP",maker:"明治",avail:"ward",group:"特殊用途（腎不全用）",form:"liquid",formLabel:"液",
+ routes:["oral","tube"],vol:125,unit:"mL",kcal:200,density:1.6,
+ prot:2.0,fat:5.6,carb:36.6,sugar:34.6,fiber:2.0,water:94.8,salt:0.15,
+ osm:"720",osmN:720,lactose:null,allerg:["乳","大豆"],
+ flavRx:[],flav:["コーヒー"],
+ feat:["高濃度","糖質多","低リン・低Na","低カリウム"],note:""},
+
+{name:"リーナレンMP",maker:"明治",avail:"ward",group:"特殊用途（腎不全用）",form:"liquid",formLabel:"液",
+ routes:["oral","tube"],vol:125,unit:"mL",kcal:200,density:1.6,
+ prot:7.0,fat:5.6,carb:31.6,sugar:29.6,fiber:2.0,water:94.4,salt:0.30,
+ osm:"680",osmN:680,lactose:null,allerg:["乳","大豆"],
+ flavRx:[],flav:["コーヒー"],
+ feat:["高濃度","糖質多","低リン","低カリウム"],note:""},
+
+/* ===== NST・緩和ケア・管理栄養士専従・摂食障害加算のみ（R7.9） ===== */
+{name:"オルニュート",maker:"キリン",avail:"nst",group:"特殊用途（皮膚再生）",form:"powder",formLabel:"粉末",
+ routes:["oral","tube"],vol:105,unit:"mL",kcal:20,density:0.2,
+ prot:3.1,fat:0.0,carb:1.8,sugar:null,fiber:null,water:100.0,zn:"6.0〜7.5",salt:0.0,
+ osm:null,osmN:null,lactose:null,allerg:[],
+ flavRx:[],flav:["マスカット"],
+ feat:["オルニチン 1.25 g","グルタミン 1.0 g"],
+ note:"100 mLの水に溶解した場合の栄養価。皮膚再生を目的とした補助で、エネルギー源ではない。"},
+
+{name:"メイバランスミニ ブルーベリーヨーグルト",maker:"明治",avail:"nst",group:"半消化態",form:"liquid",formLabel:"液",
+ routes:["oral","tube"],vol:125,unit:"mL",kcal:200,density:1.6,
+ prot:7.5,fat:5.6,carb:32.2,sugar:29.7,fiber:2.5,water:93.5,fe:1.5,zn:2.0,salt:0.28,
+ osm:"700",osmN:700,lactose:null,allerg:["乳","大豆"],
+ flavRx:[],flav:["ブルーベリーヨーグルト"],feat:["乳酸菌配合（殺菌）"],note:""},
+
+{name:"メイバランスミニ コーンスープ",maker:"明治",avail:"nst",group:"半消化態",form:"liquid",formLabel:"液",
+ routes:["oral","tube"],vol:125,unit:"mL",kcal:200,density:1.6,
+ prot:7.5,fat:5.6,carb:31.8,sugar:29.3,fiber:2.5,water:93.9,fe:1.5,zn:2.0,salt:0.41,
+ osm:"530",osmN:530,lactose:null,allerg:["乳","大豆"],
+ flavRx:[],flav:["コーンスープ"],feat:["スープテイスト"],
+ note:"甘い味に飽きた症例に使える塩味系。"},
+
+{name:"アイソカルクリア",maker:"ネスレ",avail:"nst",group:"半消化態",form:"liquid",formLabel:"液",
+ routes:["oral"],vol:200,unit:"mL",kcal:200,density:1.0,
+ prot:10.0,fat:0.0,carb:40.0,sugar:null,fiber:null,water:166.0,salt:0,
+ osm:"546",osmN:546,lactose:null,allerg:["乳"],
+ flavRx:[],flav:["もも"],
+ feat:["ホエイプロテイン","無脂肪"],note:"透明タイプで脂質を含まない。"},
+
+{name:"エネプリン プロテインプラス",maker:"日清オイリオ",avail:"nst",group:"半固形",form:"pudding",formLabel:"プリン",
+ routes:["oral"],vol:40,unit:"g",kcal:160,density:4.0,
+ prot:3.5,fat:"15.2〜15.9",fatN:15.55,carb:"1.6〜2.3",carbN:1.95,sugar:"1.2〜1.7",fiber:"0.4〜0.5",
+ water:19.0,salt:0.04,
+ osm:null,osmN:null,lactose:null,allerg:["乳","大豆","ゼラチン","りんご"],
+ flavRx:[],flav:["チョコ","いちご","豆腐（醤油付加）"],
+ feat:["少量高カロリー","MCT"],
+ note:"40 gで160 kcal。収載品で最もエネルギー密度が高い。豆腐味は醤油付加で甘くない。"},
+
+/* ===== 給食使用分（R7.6・在庫があれば使用可） ===== */
+{name:"すいすい",maker:"フードケア",avail:"kitchen",group:"栄養補助食品",form:"jelly",formLabel:"ゼリー飲料",
+ routes:["oral"],vol:125,unit:"mL",kcal:160,density:1.3,
+ prot:8.0,fat:0.0,carb:32.0,sugar:32.0,fiber:0,water:100,fe:2.3,zn:3.5,salt:0.07,
+ osm:null,osmN:null,lactose:null,allerg:["ゼラチン"],
+ flavRx:[],flav:["アセロラ","ゆず","ミックスフルーツ"],
+ feat:["コラーゲンペプチド","乳・大豆不使用","無脂肪"],diet:["脂質コン食"],note:""},
+
+{name:"やわらか倶楽部HOT",maker:"ハウスギャバン",avail:"kitchen",group:"栄養補助食品",form:"soft",formLabel:"やわらか食",
+ routes:["oral"],vol:70,unit:"g",kcal:100,density:1.4,
+ prot:5.0,fat:6.0,carb:6.5,sugar:5.6,fiber:0.9,water:51.6,fe:0.2,zn:0.1,salt:0.67,
+ osm:null,osmN:null,lactose:null,allerg:["小麦","大豆","牛肉","ゼラチン"],
+ flavRx:[],flav:["すき焼き"],
+ feat:["カルシウム"],diet:["嚥下調整食1j"],note:""},
+
+{name:"やわらか玉子豆腐",maker:"ハウスギャバン",avail:"kitchen",group:"栄養補助食品",form:"pudding",formLabel:"豆腐状",
+ routes:["oral"],vol:63,unit:"g",kcal:100,density:1.6,
+ prot:6.0,fat:5.5,carb:6.6,sugar:5.79,fiber:0.81,water:44.5,fe:0.13,zn:0.063,salt:0.42,
+ osm:null,osmN:null,lactose:null,allerg:["卵","乳","大豆","ゼラチン"],
+ flavRx:[],flav:["玉子豆腐"],
+ feat:[],diet:["嚥下調整食1j"],note:""},
+
+{name:"おいしくカロリー200",maker:"ハウスギャバン",avail:"kitchen",group:"栄養補助食品",form:"soft",formLabel:"やわらか食",
+ routes:["oral"],vol:63,unit:"g",kcal:200,density:3.2,
+ prot:5.4,fat:14.4,carb:12.2,sugar:null,fiber:null,water:30.62,fe:0.06,zn:3.0,salt:0.34,
+ osm:null,osmN:null,lactose:null,allerg:["ごま","大豆","ゼラチン"],
+ flavRx:[],flav:["きんぴらごぼう"],
+ feat:["高エネルギー","亜鉛"],diet:["嚥下調整食1j"],note:"63 gで200 kcal。甘くない副菜タイプ。"},
+
+{name:"エネルギーゼリー",maker:"ハウスギャバン",avail:"kitchen",group:"栄養補助食品",form:"jelly",formLabel:"ゼリー",
+ routes:["oral"],vol:98,unit:"g",kcal:160,density:1.6,
+ prot:0.0,fat:0.0,carb:41.7,sugar:38.4,fiber:3.3,water:"56.0〜56.2",fe:0.098,zn:0.0,salt:"0.13〜0.17",
+ osm:null,osmN:null,lactose:null,allerg:[],
+ flavRx:[],flav:["はちみつレモン","甘夏みかん","りんご"],
+ feat:["低蛋白","低カリウム","低リン","食物繊維"],diet:["3分粥食","5分粥食","蛋白コン食"],
+ note:"たんぱく・脂質を含まず、糖質だけでエネルギーを足せる。"},
+
+{name:"ソフトアガロリー",maker:"キッセイ薬品",avail:"kitchen",group:"栄養補助食品",form:"jelly",formLabel:"ゼリー",
+ routes:["oral"],vol:83,unit:"g",kcal:150,density:1.8,
+ prot:0.0,fat:0.0,carb:37.5,sugar:null,fiber:null,water:45.3,salt:0.0,
+ osm:null,osmN:null,lactose:null,allerg:["キウイフルーツ"],allergNote:"キウイ味のみ",
+ flavRx:[],flav:["キウイ","パイン","洋梨","メロン"],
+ feat:["低蛋白","低カリウム","低リン","カルシウム","オリゴ糖"],
+ diet:["3分粥食","5分粥食","蛋白コン食","脂質コン食"],note:""},
+
+{name:"クリーミープリン",maker:"ハウスギャバン",avail:"kitchen",group:"栄養補助食品",form:"pudding",formLabel:"プリン",
+ routes:["oral"],vol:63,unit:"g",kcal:150,density:2.4,
+ prot:0.0,fat:9.0,carb:17.2,sugar:16.6,fiber:0.6,water:36.4,fe:0.1,zn:0.1,salt:0.025,
+ osm:null,osmN:null,lactose:null,allerg:["乳","大豆"],
+ flavRx:[],flav:["カスタード"],
+ feat:["低蛋白","低カリウム","低リン","カルシウム"],diet:["蛋白コン食"],note:""},
+
+{name:"プロテインゼリー",maker:"バランス",avail:"kitchen",group:"栄養補助食品",form:"jelly",formLabel:"ゼリー",
+ routes:["oral"],vol:74,unit:"g",kcal:100,density:1.3,
+ prot:7.2,fat:0.0,carb:18.0,sugar:null,fiber:null,water:"47.9〜48.1",fe:5.0,zn:5.0,salt:"0.03〜0.04",
+ osm:null,osmN:null,lactose:null,allerg:["ゼラチン","もも","りんご"],allergNote:"もも・りんごはMIXフルーツ味のみ",
+ flavRx:[],flav:["赤ブドウ","MIXフルーツ","メロン"],
+ feat:["高蛋白"],diet:["脂質コン食"],note:"脂質を含まずたんぱくと鉄・亜鉛を足せる。"},
+
+{name:"ごはんにあうソース",maker:"ジャネフ",avail:"kitchen",group:"栄養補助食品",form:"soft",formLabel:"ソース",
+ routes:["oral"],vol:10,unit:"mL",kcal:60,density:6.0,
+ prot:0.2,fat:5.7,carb:1.6,sugar:null,fiber:null,water:null,salt:0.4,
+ osm:null,osmN:null,lactose:null,allerg:["卵","小麦","大豆"],
+ flavRx:[],flav:["たまご風味"],
+ feat:["少量高エネルギー","ごはんにかける","塩分を含む"],diet:["嚥下調整食4"],
+ note:"10 mLで60 kcal。主食にかけて上乗せする使い方。"}
+];
+
+/* ---- 選択肢 ---- */
+const GOALS = [
+  {id:"lowfat",  label:"脂質を控えたい"},
+  {id:"lowprot", label:"たんぱくを控えたい（腎機能低下）"},
+  {id:"lowk",    label:"カリウム・リンを控えたい"},
+  {id:"highprot",label:"たんぱくを増やしたい"},
+  {id:"dm",      label:"血糖が上がりにくいものにしたい"},
+  {id:"hepatic", label:"肝性脳症がある"},
+  {id:"dense",   label:"少量で高エネルギーにしたい・水分制限がある"},
+  {id:"dysphagia",label:"嚥下障害がある"},
+  {id:"lowosm",  label:"下痢がある・浸透圧を抑えたい"},
+  {id:"fiber",   label:"食物繊維を入れたい"},
+  {id:"wound",   label:"褥瘡・創傷がある"},
+  {id:"savory",  label:"甘い味に飽きている"}
+];
+const ALLERGENS = ["乳","大豆","卵","小麦","ごま","牛肉","ゼラチン","キウイフルーツ","りんご","もも"];
+const FORMS = [
+  {id:"liquid",label:"液体"},{id:"semisolid",label:"半固形"},{id:"jelly",label:"ゼリー"},
+  {id:"pudding",label:"プリン・豆腐状"},{id:"powder",label:"粉末"},{id:"soft",label:"やわらか食・ソース"}
+];
+const ROUTE_LABEL={oral:"経口",tube:"経管"};
+
+/* ---- 派生値 ---- */
+const num = v => typeof v === "number" ? v : (typeof v === "string" && v.match(/[\d.]+/) ? parseFloat(v) : null);
+DATA.forEach((d,i)=>{
+  d.id=i;
+  d.availLabel=AVAIL[d.avail].label;
+  d.routeLabel=d.routes.map(r=>ROUTE_LABEL[r]).join("・");
+  const per=(v)=>{ const n = v!=null && typeof v==="number" ? v : num(v); return n==null?null:+(n/d.kcal*100).toFixed(1); };
+  d.p100=per(d.prot);
+  d.f100=per(d.fatN!=null?d.fatN:d.fat);
+  d.carbTotal = d.carb!=null ? (d.carbN!=null?d.carbN:num(d.carb)) : num(d.sugar);
+  d.c100=per(d.carbTotal);
+  d.s100=per(d.salt);
+  d.k100=d.k!=null?per(d.k):null;
+  d.fib100=d.fiber!=null?per(d.fiber):null;
+  d.fatPct=d.f100!=null?Math.round(d.f100*9):null;
+  d.featStr=(d.feat||[]).join("／");
+  d.savory = /コーンスープ|スープ|きな粉|すき焼き|玉子豆腐|きんぴら|たまご風味|コンソメ|醤油/.test((d.flav||[]).concat(d.flavRx||[]).join("")+(d.feat||[]).join(""));
+});
+
+/* =========================================================
+   発注区分タイル
+   ========================================================= */
+const tilesEl=document.getElementById("tiles");
+let availFilter=new Set();
+Object.entries(AVAIL).forEach(([k,v])=>{
+  const n=DATA.filter(d=>d.avail===k).length;
+  const b=document.createElement("button");
+  b.type="button"; b.className="tile"; b.setAttribute("aria-pressed","false"); b.dataset.k=k;
+  b.innerHTML=`<span class="t-n">${n}</span><span class="t-name">${v.label}</span><span class="t-sub">${v.sub}</span>`;
+  b.addEventListener("click",()=>{
+    if(availFilter.has(k)) availFilter.delete(k); else availFilter.add(k);
+    b.setAttribute("aria-pressed", availFilter.has(k));
+    render();
+  });
+  tilesEl.appendChild(b);
+});
+
+/* =========================================================
+   フィルタUI
+   ========================================================= */
+const mk=(host,items,name)=>host.innerHTML=items.map(o=>
+  `<label><input type="checkbox" name="${name}" value="${o.id||o}"><span>${o.label||o}</span></label>`).join("");
+mk(document.getElementById("goals"),GOALS,"goal");
+mk(document.getElementById("allerg"),ALLERGENS,"allerg");
+mk(document.getElementById("forms"),FORMS,"form");
+
+const form=document.getElementById("filters");
+function readState(){
+  const fd=new FormData(form);
+  return {route:fd.get("route"),goals:fd.getAll("goal"),allerg:fd.getAll("allerg"),
+          forms:fd.getAll("form"),lactose:!!fd.get("lactose"),wardonly:!!fd.get("wardonly")};
+}
+
+/* =========================================================
+   評価
+   ========================================================= */
+function evaluate(d,s){
+  const out=[],warn=[],hits=[];let score=0;
+  const feat=(d.feat||[]).join("");
+
+  /* --- 除外条件 --- */
+  if(availFilter.size && !availFilter.has(d.avail)) out.push("選択した発注区分に含まれません");
+  if(s.wardonly && d.avail!=="ward" && d.avail!=="rx")
+    out.push(AVAIL[d.avail].label+"のため病棟から直接発注できません");
+  if(s.route!=="any" && !d.routes.includes(s.route))
+    out.push(ROUTE_LABEL[s.route]+"での使用に対応していません");
+  if(s.forms.length && !s.forms.includes(d.form)) out.push("選択した剤形に該当しません");
+  const hitAllerg=s.allerg.filter(a=>(d.allerg||[]).includes(a));
+  if(hitAllerg.length) out.push(hitAllerg.join("・")+"を含みます"+(d.allergNote?`（${d.allergNote}）`:""));
+  if(s.lactose && d.lactose===true) out.push("乳糖を含みます"+(d.lactoseAmt?`（${d.lactoseAmt}）`:""));
+
+  /* --- 加点 --- */
+  if(s.goals.includes("lowfat") && d.f100!=null){
+    if(d.f100<0.5){score+=40;hits.push(`脂質 ${d.f100} g/100 kcal`);}
+    else if(d.f100<1.5){score+=28;hits.push(`脂質 ${d.f100} g/100 kcal`);}
+    else if(d.f100<2.5){score+=14;}
+    else if(d.f100>4){score-=12;warn.push(`脂質は 100 kcalあたり ${d.f100} g と多めです`);}
+  }
+  if(s.goals.includes("lowprot") && d.p100!=null){
+    if(d.p100<1.5){score+=40;hits.push(`たんぱく ${d.p100} g/100 kcal`);}
+    else if(d.p100<3.5){score+=26;hits.push(`たんぱく ${d.p100} g/100 kcal`);}
+    else if(d.p100>6){score-=14;warn.push(`たんぱくは 100 kcalあたり ${d.p100} g と多めです`);}
+    if(/低蛋白/.test(feat)){score+=18;hits.push("低たんぱく設計");}
+  }
+  if(s.goals.includes("lowk")){
+    if(/低カリウム|低リン/.test(feat)){score+=34;hits.push("低カリウム・低リン設計");}
+    else if(d.k100!=null){
+      if(d.k100<110){score+=20;hits.push(`カリウム ${d.k100} mg/100 kcal`);}
+      else if(d.k100>150){score-=12;warn.push(`カリウムは 100 kcalあたり ${d.k100} mg と多めです`);}
+    } else warn.push("カリウム・リンの記載が一覧にありません");
+  }
+  if(s.goals.includes("highprot") && d.p100!=null){
+    if(d.p100>=6){score+=32;hits.push(`たんぱく ${d.p100} g/100 kcal`);}
+    else if(d.p100>=4.5){score+=18;hits.push(`たんぱく ${d.p100} g/100 kcal`);}
+    else if(d.p100<2){score-=14;}
+  }
+  if(s.goals.includes("dm")){
+    if(/糖質少/.test(feat)){score+=36;hits.push("糖質を抑えた設計");}
+    else if(d.c100!=null && d.c100<=11){score+=20;hits.push(`炭水化物 ${d.c100} g/100 kcal`);}
+    else if(d.c100!=null && d.c100>=18){score-=12;warn.push(`炭水化物は 100 kcalあたり ${d.c100} g と多めです`);}
+    if(/PHGG|食物繊維|難消化性デキストリン/.test(feat)){score+=8;}
+  }
+  if(s.goals.includes("hepatic")){
+    if(/BCAA高配合/.test(feat)){score+=46;hits.push("BCAA高配合の肝性脳症用");}
+    else if(/BCAA/.test(feat)){score+=16;hits.push("BCAA配合");}
+  }
+  if(s.goals.includes("dense")){
+    if(d.density>=2.4){score+=38;hits.push(`${d.density} kcal/${d.unit==="g"?"g":"mL"}`);}
+    else if(d.density>=1.6){score+=24;hits.push(`${d.density} kcal/${d.unit==="g"?"g":"mL"}`);}
+    else if(d.density>=1.5){score+=16;}
+    else if(d.density<1){score-=14;}
+  }
+  if(s.goals.includes("dysphagia")){
+    const dt=(d.diet||[]).find(x=>x.includes("嚥下調整食"));
+    if(dt){score+=40;hits.push(dt+"で提供中");}
+    else if(["jelly","pudding","soft","semisolid"].includes(d.form)){score+=22;hits.push("ゼリー・半固形で嚥下しやすい");}
+    else if(d.form==="liquid"){score-=6;}
+  }
+  if(s.goals.includes("lowosm")){
+    if(d.osmN!=null){
+      if(d.osmN<=400){score+=32;hits.push(`浸透圧 ${d.osm} mOsm/L`);}
+      else if(d.osmN<=500){score+=16;}
+      else if(d.osmN>=650){score-=16;warn.push(`浸透圧 ${d.osm} mOsm/L と高く、下痢を招くことがあります`);}
+    }
+    if(/^消化態/.test(d.group) || /ペプチド|乳清/.test(feat)){score+=14;hits.push("消化態で吸収されやすい");}
+  }
+  if(s.goals.includes("fiber")){
+    if(d.fib100!=null && d.fib100>=1.2){score+=26;hits.push(`食物繊維 ${d.fib100} g/100 kcal`);}
+    else if(d.fib100!=null && d.fib100>0){score+=12;}
+    if(/PHGG|ペクチン|オリゴ糖/.test(feat)){score+=10;}
+  }
+  if(s.goals.includes("wound")){
+    if(/オルニチン|グルタミン|コラーゲン/.test(feat)){score+=34;hits.push("創傷治癒を意識した成分");}
+    if(/亜鉛/.test(feat)){score+=16;hits.push("亜鉛強化");}
+    if(d.p100!=null && d.p100>=6){score+=18;hits.push(`たんぱく ${d.p100} g/100 kcal`);}
+  }
+  if(s.goals.includes("savory")){
+    if(d.savory){score+=34;hits.push("甘くない味がある");}
+    else if((d.flav||[]).length>=3){score+=10;hits.push("味の選択肢が多い");}
+  }
+
+  /* 発注しやすさは同点の並びに反映 */
+  const tier={rx:3,ward:3,kitchen:2,nst:1,dept:0}[d.avail];
+  return {score,out,warn,hits,tier};
+}
+
+/* =========================================================
+   描画
+   ========================================================= */
+const availChip=d=>{
+  const cls = d.avail==="rx" ? "rx" : (d.avail==="ward"||d.avail==="kitchen" ? "" : "lim");
+  return `<span class="chip ${cls}">${AVAIL[d.avail].label}</span>`;
+};
+function factsFor(d){
+  const f=[`<div>${d.vol} ${d.unit} / <b>${d.kcal}</b> kcal</div>`,
+           `<div><b>${d.density}</b> kcal/${d.unit==="g"?"g":"mL"}</div>`];
+  if(d.p100!=null) f.push(`<div>たんぱく <b>${d.p100}</b> g</div>`);
+  if(d.f100!=null) f.push(`<div>脂質 <b>${d.f100}</b> g</div>`);
+  if(d.c100!=null) f.push(`<div>炭水化物 <b>${d.c100}</b> g</div>`);
+  if(d.osm) f.push(`<div>浸透圧 <b>${d.osm}</b></div>`);
+  return `<div class="facts">${f.join("")}</div>
+    <p class="unit-note" style="margin:5px 0 0">栄養素は 100 kcal あたり</p>`;
+}
+function cardHTML(d,ev,rank){
+  const chips=[availChip(d),`<span class="chip">${d.group}</span>`,`<span class="chip">${d.formLabel}</span>`]
+    .concat(ev.hits.slice(0,3).map(h=>`<span class="chip hit">${h}</span>`))
+    .concat((d.feat||[]).slice(0,2).map(t=>`<span class="chip">${t}</span>`));
+  return `<article class="card" tabindex="0" data-id="${d.id}">
+    <div class="card-top"><h3>${d.name}<span class="maker">${d.maker}</span></h3>
+    ${rank?`<span class="rank">${rank}</span>`:""}</div>
+    <div class="chips">${chips.join("")}</div>
+    ${factsFor(d)}
+    ${ev.warn.map(w=>`<div class="warn">${w}</div>`).join("")}
+  </article>`;
+}
+function outHTML(d,ev){
+  return `<article class="card" tabindex="0" data-id="${d.id}">
+    <div class="card-top"><h3>${d.name}<span class="maker">${d.maker}</span></h3></div>
+    ${ev.out.map(o=>`<div class="warn hard">${o}</div>`).join("")}
+  </article>`;
+}
+function render(){
+  const s=readState();
+  const scored=DATA.map(d=>({d,ev:evaluate(d,s)}));
+  const ok=scored.filter(x=>!x.ev.out.length)
+    .sort((a,b)=>b.ev.score-a.ev.score||b.ev.tier-a.ev.tier||a.d.name.localeCompare(b.d.name,"ja"));
+  const ng=scored.filter(x=>x.ev.out.length);
+  const picked=s.goals.length>0;
+
+  document.getElementById("countMatch").innerHTML= picked
+    ? `条件に合う <b>${ok.length}</b> 品。適合度の高い順です。`
+    : `<b>${ok.length}</b> 品。左で目的を選ぶと適合度順に並べ替えます。`;
+  document.getElementById("listMatch").innerHTML= ok.length
+    ? ok.map((x,i)=>cardHTML(x.d,x.ev,picked&&i<3?["最も適合","2番目に適合","3番目に適合"][i]:null)).join("")
+    : `<div class="empty"><p>条件に合う採用品がありません。</p><p>アレルゲンの除外か投与経路を緩めてください。</p></div>`;
+
+  document.getElementById("countOut").innerHTML=`条件から外れた <b>${ng.length}</b> 品。外れた理由を示します。`;
+  document.getElementById("listOut").innerHTML= ng.length
+    ? ng.sort((a,b)=>a.d.name.localeCompare(b.d.name,"ja")).map(x=>outHTML(x.d,x.ev)).join("")
+    : `<div class="empty"><p>外れた採用品はありません。</p></div>`;
+}
+form.addEventListener("change",render);
+document.getElementById("reset").addEventListener("click",()=>{
+  form.reset(); availFilter.clear();
+  document.querySelectorAll(".tile").forEach(t=>t.setAttribute("aria-pressed","false"));
+  render();
+});
+
+/* ---- 一覧表 ---- */
+let sortKey="name",sortDir=1;
+function renderTable(){
+  const rows=[...DATA].sort((a,b)=>{
+    const va=a[sortKey],vb=b[sortKey];
+    if(va==null&&vb==null)return 0; if(va==null)return 1; if(vb==null)return -1;
+    if(typeof va==="number")return (va-vb)*sortDir;
+    return String(va).localeCompare(String(vb),"ja")*sortDir;
+  });
+  document.querySelector("#tbl tbody").innerHTML=rows.map(d=>`<tr tabindex="0" data-id="${d.id}">
+    <td>${d.name}<span class="maker">${d.maker}</span></td>
+    <td>${AVAIL[d.avail].label}</td><td>${d.formLabel}</td>
+    <td class="num">${d.density}</td>
+    <td class="num">${d.p100??"—"}</td><td class="num">${d.f100??"—"}</td>
+    <td class="num">${d.c100??"—"}</td><td class="num">${d.s100??"—"}</td>
+    <td class="num">${d.osm??"—"}</td><td>${d.routeLabel}</td></tr>`).join("");
+  document.querySelectorAll("#tbl th").forEach(th=>{
+    if(th.dataset.k===sortKey) th.setAttribute("aria-sort",sortDir>0?"ascending":"descending");
+    else th.removeAttribute("aria-sort");
+  });
+}
+document.querySelectorAll("#tbl th").forEach(th=>th.addEventListener("click",()=>{
+  const k=th.dataset.k;
+  if(k===sortKey) sortDir*=-1; else {sortKey=k;sortDir=1;}
+  renderTable();
+}));
+document.getElementById("countAll").textContent=DATA.length;
+
+/* ---- 詳細 ---- */
+const dlg=document.getElementById("dlg");
+const row=(t,v)=> v==null||v===""?"":`<dt>${t}</dt><dd>${v}</dd>`;
+const n2=(per,one,u="g")=> one==null?`<td class="num">—</td><td class="num">—</td>`
+  :`<td class="num">${per??"—"}</td><td class="num">${one} ${u}</td>`;
+function openDetail(d){
+  document.getElementById("dlgTitle").innerHTML=`${d.name}<span class="maker">${d.maker}</span>`;
+  const flavors=[...(d.flavRx||[]).map(f=>`${f}（入院時処方可）`),...(d.flav||[])].join("・");
+  document.getElementById("dlgBody").innerHTML=`
+  <dl>
+    ${row("発注区分",AVAIL[d.avail].label+"／"+AVAIL[d.avail].sub)}
+    ${row("分類",d.group)}
+    ${row("剤形",d.formLabel)}
+    ${row("投与経路",d.routeLabel)}
+    ${row("容量",`${d.vol} ${d.unit}（${d.kcal} kcal・${d.density} kcal/${d.unit==="g"?"g":"mL"}）`)}
+    ${row("浸透圧",d.osm?d.osm+" mOsm/L":null)}
+    ${row("NPC/N比",d.npcn)}
+    ${row("風味",flavors)}
+    ${row("アレルギー",(d.allerg&&d.allerg.length?d.allerg.join("・"):"記載なし")+(d.allergNote?`（${d.allergNote}）`:""))}
+    ${row("乳糖",d.lactose===true?"含む"+(d.lactoseAmt?`（${d.lactoseAmt}）`:""):d.lactose===false?"含まない":null)}
+    ${row("提供食種",(d.diet||[]).join("・"))}
+  </dl>
+  <h4>栄養組成</h4>
+  <table class="nutri"><thead><tr><th>項目</th><th class="num">100 kcal</th><th class="num">1本（袋）</th></tr></thead><tbody>
+    <tr><td>たんぱく質</td>${n2(d.p100,d.prot)}</tr>
+    <tr><td>脂質</td>${n2(d.f100,d.fat)}</tr>
+    <tr><td>炭水化物</td>${n2(d.c100,d.carb??d.sugar)}</tr>
+    <tr><td>糖質</td>${n2(null,d.sugar)}</tr>
+    <tr><td>食物繊維</td>${n2(d.fib100,d.fiber)}</tr>
+    <tr><td>水分</td>${n2(null,d.water)}</tr>
+    <tr><td>食塩相当量</td>${n2(d.s100,d.salt)}</tr>
+    <tr><td>ナトリウム</td>${n2(null,d.na,"mg")}</tr>
+    <tr><td>カリウム</td>${n2(d.k100,d.k,"mg")}</tr>
+    <tr><td>鉄</td>${n2(null,d.fe,"mg")}</tr>
+    <tr><td>亜鉛</td>${n2(null,d.zn,"mg")}</tr>
+  </tbody></table>
+  ${d.saltNote?`<div class="warn" style="margin-top:12px">食塩相当量：${d.saltNote}</div>`:""}
+  ${(d.feat&&d.feat.length)?`<h4>特徴</h4><div class="chips">${d.feat.map(t=>`<span class="chip">${t}</span>`).join("")}</div>`:""}
+  ${d.note?`<h4>備考</h4><p style="margin:0;font-size:13.5px;line-height:1.75">${d.note}</p>`:""}
+  ${d.avail!=="ward"&&d.avail!=="rx"?`<div class="warn" style="margin-top:14px">${AVAIL[d.avail].label}：${AVAIL[d.avail].sub}</div>`:""}`;
+  dlg.showModal();
+}
+document.getElementById("dlgClose").addEventListener("click",()=>dlg.close());
+dlg.addEventListener("click",e=>{if(e.target===dlg)dlg.close()});
+document.body.addEventListener("click",e=>{
+  const el=e.target.closest("[data-id]"); if(el) openDetail(DATA[+el.dataset.id]);
+});
+document.body.addEventListener("keydown",e=>{
+  if(e.key!=="Enter"&&e.key!==" ")return;
+  const el=e.target.closest("[data-id]");
+  if(el&&(el.classList.contains("card")||el.tagName==="TR")){e.preventDefault();openDetail(DATA[+el.dataset.id]);}
+});
+
+/* ---- タブ ---- */
+const tabs=[...document.querySelectorAll(".tab")];
+tabs.forEach(t=>t.addEventListener("click",()=>{
+  tabs.forEach(o=>{const sel=o===t;o.setAttribute("aria-selected",sel);
+    document.getElementById(o.getAttribute("aria-controls")).hidden=!sel;});
+  if(t.id==="tab-all") renderTable();
+}));
+
+render(); renderTable();
+</script>
+</body>
+</html>
